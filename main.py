@@ -44,15 +44,15 @@ async def convert():
 @app.get("/convert/{temperature}/{unit}/{convertTo}")
 async def convert_temperature(
         temperature: Decimal, unit: str, convertTo: str):
-    if (unit.lower() in ('celcius', 'c')
+    if (unit.lower() in ('celsius', 'c')
             and convertTo.lower() in ('fahrenheit', 'f')):
         converted_temp = temperature * Decimal('1.8') + 32
     elif (unit.lower() in ('fahrenheit', 'f')
-            and convertTo.lower() in ('celcius', 'c')):
+            and convertTo.lower() in ('celsius', 'c')):
         converted_temp = (temperature - Decimal(32)) * (Decimal(5)/Decimal(9))
     else:
         raise HTTPException(
             status_code=400,
-            detail=f"Only Celcius and Fahrenheit are supported"
+            detail=f"Only Celsius and Fahrenheit are supported"
         )
     return {"value": converted_temp}
