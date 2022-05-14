@@ -2,3 +2,4 @@ fastapi~=0.77.1
 uvicorn
 pytest
 requests
+ray

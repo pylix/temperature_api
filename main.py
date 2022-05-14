@@ -2,7 +2,8 @@ from decimal import Decimal
 from enum import Enum
 
 from fastapi import FastAPI, HTTPException
-#from typing import Literal
+import ray
+from ray import serve
 
 description = (
     "Welcome the the temperature" 
@@ -16,6 +17,9 @@ app = FastAPI(
     docs_url="/documentation",
     redoc_url=None
 )
+
+ray.init(address="auto", namespace="temperature-api")
+serve.start(detached=True)
 
 tags_metadata = [
     {
@@ -80,3 +84,12 @@ async def convert_temperature(
             detail=f"Nothing to convert because unit and convertTo are the unit"
         )
     return {"value": converted_temp}
+
+
+@serve.deployment(route_prefix="/")
+@serve.ingress(app)
+class FastAPIWrapper:
+    pass
+
+
+FastAPIWrapper.deploy()
