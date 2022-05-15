@@ -19,7 +19,12 @@ app = FastAPI(
 )
 
 ray.init(address="auto", namespace="temperature-api")
-serve.start(detached=True)
+
+http_options = {
+    "host": "0.0.0.0",
+    "port": 8080
+}
+serve.start(detached=True, http_options=http_options)
 
 tags_metadata = [
     {
