@@ -1,6 +1,6 @@
-##Temperature Converter API Project
+## Temperature Converter API Project
 
-###Rationale 
+### Rationale 
 
 For this API I decided to use Python. Because of the short timeline I wanted to use something I was more familiar with. Python is a mostly interpreted language that has support for practically all forms of computing and is very popular for science, machine learning and scripting due to it’s easy to understand code and high levels of dynamism and abstraction. 
 
@@ -33,7 +33,7 @@ Ray is a processing engine similar to spark, but with a greater focus on utilizi
 
 ### Build and deployment
 
-####Docker based version
+#### Docker based version
 In terms of building, python is primarily a dynamically typed and interpreted programming and so in most cases there’s nothing to build. Even though some dependencies controlled from python may be built from source these are not part of the overall package. 
 I did include a docker file for a simplified version of the application that doesn’t use ray. This simplified version can be quickly built and deployed with docker but would not be immediately deployable to a multi node environment. 
 To use build and deploy this version. You must first download and install docker https://docs.docker.com/get-docker/.  At the time of writing docker desktop on windows and mac have ready-made binaries that can be taken advantage of. For Linux, if you use a RHEL based OS you can use.. 
@@ -79,7 +79,7 @@ sudo docker run -d -p 8080:8080 --name app1 <image_name>
 sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
 ```
 
-###Building and deploying with Ray
+### Building and deploying with Ray
 
 To build the application as it exists in production, we need to use Ray and Amazon web services. The way my build works is that I launch the ray cluster creation service on my home/dev machine using my AWS application admin credentials. IAM specific permissions for Ray are a bit more complicated, but as a start you can view the incomplete page https://github.com/ray-project/ray/issues/9327. Using the root account is not advised, but a set of keys with admin credentials will make things easy to start up.  If you don’t have an AWS account, you can create one at https://aws.amazon.com/
 Once you have an AWS account and keys with all the necessary permissions, you need to install ray a machine. It doesn’t need to be a local machine but unless your keys expire it’s best not to put admin keys on servers that don’t have the proper level of security. 
@@ -105,7 +105,7 @@ You can then run the tests in the docker container via
 ```
 pytest --no-header -v /home/ubuntu/temperature_api/
 ```
-###Testing
+### Testing
 
 As mentioned, automated test can be run from within the cluster docker container with the command 
 You must be attached to the cluster docker container via ray attach temperature_api.yaml
@@ -127,4 +127,4 @@ ray down temperature_api.yaml
 This stops all AWS instances, but it doesn’t remove the EBS volumes which can still incur costs. Please terminate them as well to avoid paying unnecessary costs. You should be able to do this via AWS CLI / the Console
 These are the basics are the deployment and testing of this application for more information oh the configuration file that deploys the cluster and sets up all the dependencies see https://docs.ray.io/en/latest/cluster/config.html
 
-###Thank you!
+### Thank you!
