@@ -12,7 +12,7 @@ The convert endpoint url is constructed as shown below:
 
 http://alixetienne.com/convert/{temperature}/{unit}/{convertTo}
 
--http://alixetienne.com is the address of the host also at ip 
+- http://alixetienne.com is the address of the host also at ip 
 - convert/ is the endpoint topic
 - {temperature} is the temperature that’s being converted is a numerical amount like 32
 - {unit} is the source temperature unit that’s being converted like Celsius or Fahrenheit
