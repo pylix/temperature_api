@@ -97,4 +97,4 @@ class FastAPIWrapper:
     pass
 
 
-FastAPIWrapper.deploy()
+new_app = FastAPIWrapper.deploy()

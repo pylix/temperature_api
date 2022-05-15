@@ -1,11 +1,49 @@
 from decimal import Decimal
 from random import randint
-from fastapi.testclient import TestClient
 
-from .main import app
-from conversion_tables import celsius_conv_table, fahrenheit_conv_table
+import requests
 
-client = TestClient(app)
+from . conversion_tables import celsius_conv_table, fahrenheit_conv_table
+
+
+class Client:
+    def __init__(self, host, port, try_public=False):
+        """
+        Because we're using Ray we need this class to act as our client
+        Otherwise the tests won't work correctly
+        This class is a requests get wrapper that supplies the
+        necessary host ip as a prefix to ensure the API
+        requests can be fulfilled.
+        :param host: the public ip address of the host or localhost
+        :param try_public: if True will try to replace host with its public ip
+        """
+        self.host = host
+        self.port = port
+        self.ip = "127.0.0.1"
+        if try_public:
+            try:
+                public_ip = (
+                    requests.get('https://api.ipify.org').content.decode('utf8')
+                )
+                if len(public_ip) > 1:
+                    self.ip = public_ip
+            except Exception as e:
+                print(f"unable to fetch public ip: {e}")
+            if self.host != self.ip:
+                self.host = self.ip
+        self.url_prefix = f"http://{self.host}:8080"
+
+    def get(self, url_suffix):
+        """
+        :param url_suffix: url without hostname and port
+        :return: response of requests using constructed url
+        """
+        return requests.get(f"{self.url_prefix}{url_suffix}")
+
+
+# set client to local host
+# replace it with the public ip if it's available
+client = Client("127.0.0.1", port="8080", try_public=True)
 
 
 def _choose_five_random_indices():

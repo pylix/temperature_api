@@ -1,7 +1,115 @@
 # An unique identifier for the head node and workers of this cluster.
-cluster_name: minimal
+cluster_name: temperature-api-v3
+upscaling_speed: 3.0
+max_workers: 12
+target_utilization_fraction: 0.4
+
+docker:
+    image: "rayproject/ray-ml:latest-cpu" # You can change this to latest-cpu if you don't need GPU support and want a faster startup
+    container_name: "ray_container"
+    pull_before_run: True
+    run_options:   # Extra options to pass into "docker run"
+        - --ulimit nofile=65536:65536 -p 8080:8080 -p 8265:8265
+
+# If a node is idle for this many minutes, it will be removed.
+idle_timeout_minutes: 5
 
 # Cloud-provider specific configuration.
 provider:
     type: aws
     region: us-west-2
+    availability_zone: us-west-2a,us-west-2b
+    cache_stopped_nodes: True # If not present, the default is True.
+#    security_group:
+#        GroupName: ray-autoscaler-temperature-api
+#        IpPermissions:
+#            - FromPort: 80
+#              ToPort: 80
+#              IpProtocol: TCP
+#              IpRanges:
+#                  # This will enable inbound access from ALL IPv4 addresses.
+#                  - CidrIp: 0.0.0.0/0
+#            - FromPort: 8000
+#              ToPort: 8080
+#              IpProtocol: TCP
+#              IpRanges:
+#                  # This will enable inbound access from ALL IPv4 addresses.
+#                  - CidrIp: 0.0.0.0/0
+#            - FromPort: 8265
+#              ToPort: 8265
+#              IpProtocol: TCP
+#              IpRanges:
+#                  # This will enable inbound access from ALL IPv4 addresses.
+#                  - CidrIp: 0.0.0.0/0
+
+# How Ray will authenticate with newly launched nodes.
+auth:
+    ssh_user: ubuntu
+
+available_node_types:
+    ray.head.default:
+        # resources: {"CPU": 1, "GPU": 1, "custom": 5}
+        resources: {}
+        node_config:
+            InstanceType: m5.xlarge
+            BlockDeviceMappings:
+                - DeviceName: /dev/sda1
+                  Ebs:
+                      VolumeSize: 120
+            # Additional options in the boto docs.
+    ray.worker.default:
+        min_workers: 2
+        max_workers: 10
+        resources: {"CPU": 2, "GPU": 1}
+        node_config:
+            InstanceType: m5.large
+            InstanceMarketOptions:
+                MarketType: spot
+
+# Specify the node type of the head node (as configured above).
+head_node_type: ray.head.default
+
+# Files or directories to copy to the head and worker nodes. The format is a
+# dictionary from REMOTE_PATH: LOCAL_PATH, e.g.
+file_mounts: {
+    "/home/ubuntu/temperature_api": "/Users/alix/PycharmProjects/temperature_api/"
+#    "/path2/on/remote/machine": "/path2/on/local/machine",
+}
+
+cluster_synced_files: []
+
+file_mounts_sync_continuously: False
+
+# Patterns for files to exclude when running rsync up or rsync down
+rsync_exclude:
+    - "**/.git"
+    - "**/.git/**"
+
+rsync_filter:
+    - ".gitignore"
+
+initialization_commands:
+    - sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8080
+
+# List of shell commands to run to set up nodes.
+setup_commands: []
+
+# Custom commands that will be run on the head node after common setup.
+head_setup_commands:
+    - pip install -r /home/ubuntu/temperature_api/requirements.txt
+
+# Custom commands that will be run on worker nodes after common setup.
+worker_setup_commands: []
+
+# Command to start ray on the head node. You don't need to change this.
+head_start_ray_commands:
+    - ray stop
+    - ray start --head --port=6379 --dashboard-host "0.0.0.0" --object-manager-port=8076 --autoscaling-config=~/ray_bootstrap_config.yaml
+
+# Command to start ray on worker nodes. You don't need to change this.
+worker_start_ray_commands:
+    - ray stop
+    - ray start --address=$RAY_HEAD_IP:6379 --object-manager-port=8076
+
+head_node: {}
+worker_nodes: {}
